@@ -1,0 +1,722 @@
+<html><head><base href="." /><title>Snake Game - Classic & Campaign</title><style>
+  body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #ffeb3b; /* Changed from #1a1a1a to yellow */
+    color: #333; /* Changed from #fff to dark gray for better contrast */
+    font-family: 'Press Start 2P', system-ui;
+  }
+
+  #game-container {
+    position: relative;
+    margin: 20px;
+  }
+
+  canvas {
+    border: 4px solid #4CAF50;
+    border-radius: 8px;
+    background: transparent; /* Changed to transparent for checkered background */
+    box-shadow: 0 0 20px rgba(0,0,0,0.2); /* Added shadow for better depth */
+  }
+
+  .menu {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .game-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 235, 59, 0.95);
+    padding: 10px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: none;
+  }
+
+  .game-menu.active {
+    display: block;
+  }
+
+  .menu-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .menu-section {
+    flex: 1;
+    min-width: 200px;
+    margin: 10px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .menu-section h3 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+
+  .menu-button {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background: #4CAF50;
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .menu-button:hover {
+    transform: scale(1.05);
+  }
+
+  #menu-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1001;
+    padding: 10px;
+    background: #4CAF50;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+  }
+
+  .controls-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .controls-list li {
+    margin: 5px 0;
+    color: #333;
+  }
+
+  #score, #level {
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  .campaign-objective {
+    background: rgba(76, 175, 80, 0.3); /* Made slightly more opaque */
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+    color: #333; /* Changed text color for better contrast */
+  }
+
+  .snake-head {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+  }
+
+  .snake-eye {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+  }
+
+  .snake-tongue {
+    position: absolute;
+    width: 8px;
+    height: 6px;
+    background: red;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+
+  #start-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 8px;
+    z-index: 100;
+    width: 80%;
+    max-width: 400px;
+  }
+
+  #start-screen h1 {
+    color: #4CAF50;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  #start-screen p {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+</style></head><body>
+<button id="menu-toggle">☰ Menu</button>
+<div class="game-menu">
+  <div class="menu-content">
+    <div class="menu-section">
+      <h3>Game Modes</h3>
+      <button class="menu-button" onclick="startClassicMode()">Classic Mode</button>
+      <button class="menu-button" onclick="startCampaignMode()">Campaign Mode</button>
+    </div>
+    
+    <div class="menu-section">
+      <h3>Difficulty</h3>
+      <button class="menu-button" onclick="setDifficulty('easy')" style="background: #4CAF50;">Easy</button>
+      <button class="menu-button" onclick="setDifficulty('medium')" style="background: #FF9800;">Medium</button>
+      <button class="menu-button" onclick="setDifficulty('hard')" style="background: #f44336;">Hard</button>
+    </div>
+    
+    <div class="menu-section">
+      <h3>Controls</h3>
+      <ul class="controls-list">
+        <li>↑ - Move Up</li>
+        <li>↓ - Move Down</li>
+        <li>← - Move Left</li>
+        <li>→ - Move Right</li>
+      </ul>
+    </div>
+    
+    <div class="menu-section">
+      <h3>Options</h3>
+      <button class="menu-button" onclick="restartGame()">Restart Game</button>
+      <button class="menu-button" onclick="quitGame()" style="background: #f44336;">Quit Game</button>
+    </div>
+  </div>
+</div>
+<div id="score">Score: 0</div>
+<div id="level">Level: 1</div>
+<div class="campaign-objective" id="objective"></div>
+<div id="game-container">
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+</div>
+<div id="start-screen">
+  <h1>Snake Game</h1>
+  <p>Use arrow keys to control the snake.<br>
+     Collect food to grow and earn points.<br>
+     Avoid walls and don't bite yourself!</p>
+  <button onclick="startGame()">Start Game</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const gridSize = 20;
+const tileCount = canvas.width / gridSize;
+
+let snake = [];
+let food = {};
+let direction = 'right';
+let score = 0;
+let level = 1;
+let gameMode = '';
+let gameLoop;
+let gameSpeed = 150;
+let specialFood = null;
+let campaignObjectives = [
+  { score: 10, description: "Reach score 10" },
+  { score: 20, description: "Reach score 20 without hitting walls" },
+  { score: 30, description: "Collect 3 special foods" },
+  { score: 50, description: "Reach score 50 with increased speed" }
+];
+let currentObjective = 0;
+let specialFoodCollected = 0;
+let walls = [];
+let gameStarted = false;
+let difficulty = 'medium'; // Default difficulty
+
+function initGame() {
+  snake = [
+    { x: 5, y: 5 },
+  ];
+  direction = 'right';
+  score = 0;
+  level = 1;
+  
+  // Set initial game parameters based on difficulty
+  switch(difficulty) {
+    case 'easy':
+      gameSpeed = 200;
+      break;
+    case 'medium':
+      gameSpeed = 150;
+      break;
+    case 'hard':
+      gameSpeed = 100;
+      break;
+  }
+  
+  generateWalls();
+  placeFood();
+  updateScore();
+  updateLevel();
+}
+
+function setDifficulty(level) {
+  difficulty = level;
+  
+  // Visual feedback for selected difficulty
+  const buttons = document.getElementById('difficulty-selector').getElementsByTagName('button');
+  for(let btn of buttons) {
+    btn.style.opacity = '0.7';
+  }
+  event.target.style.opacity = '1';
+}
+
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+  startClassicMode();
+}
+
+function startClassicMode() {
+  gameMode = 'classic';
+  initGame();
+  document.getElementById('objective').style.display = 'none';
+  gameStarted = true;
+  if (gameLoop) clearInterval(gameLoop);
+  gameLoop = setInterval(gameLogic, gameSpeed);
+}
+
+function startCampaignMode() {
+  gameMode = 'campaign';
+  initGame();
+  currentObjective = 0;
+  specialFoodCollected = 0;
+  document.getElementById('objective').style.display = 'block';
+  gameStarted = true;
+  document.getElementById('start-screen').style.display = 'none';
+  updateObjective();
+  if (gameLoop) clearInterval(gameLoop);
+  gameLoop = setInterval(gameLogic, gameSpeed);
+}
+
+function generateWalls() {
+  walls = [];
+  
+  let baseWalls;
+  switch(difficulty) {
+    case 'easy':
+      baseWalls = 2;
+      break;
+    case 'medium':
+      baseWalls = 3;
+      break;
+    case 'hard':
+      baseWalls = 4;
+      break;
+  }
+  
+  const numWalls = Math.min(baseWalls + level, difficulty === 'hard' ? 10 : 8);
+  
+  for (let i = 0; i < numWalls; i++) {
+    const wallLength = Math.floor(Math.random() * 5) + 3;
+    const isHorizontal = Math.random() < 0.5;
+    
+    const startX = Math.floor(Math.random() * (tileCount - (isHorizontal ? wallLength : 1)));
+    const startY = Math.floor(Math.random() * (tileCount - (isHorizontal ? 1 : wallLength)));
+    
+    for (let j = 0; j < wallLength; j++) {
+      const wall = {
+        x: startX + (isHorizontal ? j : 0),
+        y: startY + (isHorizontal ? 0 : j)
+      };
+      
+      const overlapsSnake = snake.some(segment => segment.x === wall.x && segment.y === wall.y);
+      const overlapsFood = food.x === wall.x && food.y === wall.y;
+      
+      if (!overlapsSnake && !overlapsFood) {
+        walls.push(wall);
+      }
+    }
+  }
+}
+
+function placeFood() {
+  food = {
+    x: Math.floor(Math.random() * tileCount),
+    y: Math.floor(Math.random() * tileCount),
+  };
+  
+  while (
+    snake.some(segment => segment.x === food.x && segment.y === food.y) ||
+    walls.some(wall => wall.x === food.x && wall.y === food.y)
+  ) {
+    food = {
+      x: Math.floor(Math.random() * tileCount),
+      y: Math.floor(Math.random() * tileCount),
+    };
+  }
+
+  if (gameMode === 'campaign' && Math.random() < 0.2) {
+    specialFood = {
+      x: Math.floor(Math.random() * tileCount),
+      y: Math.floor(Math.random() * tileCount),
+    };
+    while (walls.some(wall => wall.x === specialFood.x && wall.y === specialFood.y)) {
+      specialFood = {
+        x: Math.floor(Math.random() * tileCount),
+        y: Math.floor(Math.random() * tileCount),
+      };
+    }
+  }
+}
+
+function updateScore() {
+  document.getElementById('score').textContent = `Score: ${score}`;
+}
+
+function updateLevel() {
+  document.getElementById('level').textContent = `Level: ${level}`;
+}
+
+function updateObjective() {
+  if (gameMode === 'campaign' && currentObjective < campaignObjectives.length) {
+    document.getElementById('objective').textContent = 
+      `Objective: ${campaignObjectives[currentObjective].description}`;
+  }
+}
+
+function gameLogic() {
+  const head = { x: snake[0].x, y: snake[0].y };
+
+  switch(direction) {
+    case 'up': head.y--; break;
+    case 'down': head.y++; break;
+    case 'left': head.x--; break;
+    case 'right': head.x++; break;
+  }
+
+  if (gameMode === 'classic') {
+    if (head.x < 0) head.x = tileCount - 1;
+    if (head.x >= tileCount) head.x = 0;
+    if (head.y < 0) head.y = tileCount - 1;
+    if (head.y >= tileCount) head.y = 0;
+  } else if (gameMode === 'campaign') {
+    if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+      gameOver();
+      return;
+    }
+  }
+
+  if (walls.some(wall => wall.x === head.x && wall.y === head.y)) {
+    gameOver();
+    return;
+  }
+
+  if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+    gameOver();
+    return;
+  }
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    score += 1;
+    updateScore();
+    placeFood();
+    
+    if (score % 5 === 0) {
+      level++;
+      updateLevel();
+      
+      // Adjust speed increase based on difficulty
+      let speedDecrease;
+      switch(difficulty) {
+        case 'easy':
+          speedDecrease = 5;
+          break;
+        case 'medium':
+          speedDecrease = 10;
+          break;
+        case 'hard':
+          speedDecrease = 15;
+          break;
+      }
+      
+      gameSpeed = Math.max(50, gameSpeed - speedDecrease);
+      clearInterval(gameLoop);
+      gameLoop = setInterval(gameLogic, gameSpeed);
+    }
+
+    checkCampaignProgress();
+  } else if (specialFood && head.x === specialFood.x && head.y === specialFood.y) {
+    score += 3;
+    specialFoodCollected++;
+    updateScore();
+    specialFood = null;
+    checkCampaignProgress();
+  } else {
+    snake.pop();
+  }
+
+  draw();
+}
+
+function checkCampaignProgress() {
+  if (gameMode !== 'campaign') return;
+  
+  const objective = campaignObjectives[currentObjective];
+  let completed = false;
+
+  switch(currentObjective) {
+    case 0:
+      if (score >= objective.score) completed = true;
+      break;
+    case 1:
+      if (score >= objective.score) completed = true;
+      break;
+    case 2:
+      if (specialFoodCollected >= 3) completed = true;
+      break;
+    case 3:
+      if (score >= objective.score) completed = true;
+      break;
+  }
+
+  if (completed) {
+    currentObjective++;
+    if (currentObjective >= campaignObjectives.length) {
+      alert("Congratulations! You've completed all campaign objectives!");
+      startClassicMode();
+    } else {
+      updateObjective();
+    }
+  }
+}
+
+function draw() {
+  for (let i = 0; i < tileCount; i++) {
+    for (let j = 0; j < tileCount; j++) {
+      ctx.fillStyle = (i + j) % 2 === 0 ? '#2a2a2a' : '#1a1a1a';
+      ctx.fillRect(i * gridSize, j * gridSize, gridSize, gridSize);
+    }
+  }
+
+  ctx.fillStyle = '#8b4513';
+  walls.forEach(wall => {
+    ctx.fillRect(wall.x * gridSize, wall.y * gridSize, gridSize - 2, gridSize - 2);
+    
+    ctx.strokeStyle = '#623209';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(wall.x * gridSize, wall.y * gridSize + gridSize/2);
+    ctx.lineTo(wall.x * gridSize + gridSize, wall.y * gridSize + gridSize/2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(wall.x * gridSize + gridSize/2, wall.y * gridSize);
+    ctx.lineTo(wall.x * gridSize + gridSize/2, wall.y * gridSize + gridSize);
+    ctx.stroke();
+  });
+
+  snake.forEach((segment, index) => {
+    if (index === 0) {
+      ctx.fillStyle = '#4CAF50';
+      ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+      
+      ctx.fillStyle = '#fff';
+      let eyeOffsetX = 5;
+      let eyeOffsetY = 5;
+      
+      switch(direction) {
+        case 'right':
+          eyeOffsetX = 12;
+          break;
+        case 'left':
+          eyeOffsetX = 2;
+          break;
+        case 'up':
+          eyeOffsetY = 2;
+          break;
+        case 'down':
+          eyeOffsetY = 12;
+          break;
+      }
+      
+      ctx.fillRect(segment.x * gridSize + eyeOffsetX, segment.y * gridSize + 5, 4, 4);
+      ctx.fillRect(segment.x * gridSize + eyeOffsetX, segment.y * gridSize + 11, 4, 4);
+      
+      ctx.fillStyle = '#ff0000';
+      let tongueX = segment.x * gridSize;
+      let tongueY = segment.y * gridSize + 8;
+      
+      ctx.beginPath();
+      switch(direction) {
+        case 'right':
+          tongueX += 18;
+          ctx.moveTo(tongueX, tongueY);
+          ctx.lineTo(tongueX + 6, tongueY - 3);
+          ctx.lineTo(tongueX + 6, tongueY + 3);
+          break;
+        case 'left':
+          tongueX += 2;
+          ctx.moveTo(tongueX, tongueY);
+          ctx.lineTo(tongueX - 6, tongueY - 3);
+          ctx.lineTo(tongueX - 6, tongueY + 3);
+          break;
+        case 'up':
+          tongueX += 10;
+          tongueY += 2;
+          ctx.moveTo(tongueX, tongueY);
+          ctx.lineTo(tongueX - 3, tongueY - 6);
+          ctx.lineTo(tongueX + 3, tongueY - 6);
+          break;
+        case 'down':
+          tongueX += 10;
+          tongueY += 18;
+          ctx.moveTo(tongueX, tongueY);
+          ctx.lineTo(tongueX - 3, tongueY + 6);
+          ctx.lineTo(tongueX + 3, tongueY + 6);
+          break;
+      }
+      ctx.fill();
+    } else if (index === snake.length - 1) {
+      ctx.fillStyle = '#45a049';
+      ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+      
+      ctx.fillStyle = '#2e7d32';
+      let tailX = segment.x * gridSize;
+      let tailY = segment.y * gridSize;
+      let prevSegment = snake[snake.length - 2];
+      
+      ctx.beginPath();
+      if (prevSegment.x < segment.x) {
+        ctx.moveTo(tailX + gridSize - 2, tailY + gridSize/2);
+        ctx.lineTo(tailX + gridSize - 2, tailY);
+        ctx.lineTo(tailX + gridSize + 4, tailY + gridSize/2);
+        ctx.lineTo(tailX + gridSize - 2, tailY + gridSize);
+      } else if (prevSegment.x > segment.x) {
+        ctx.moveTo(tailX, tailY + gridSize/2);
+        ctx.lineTo(tailX, tailY);
+        ctx.lineTo(tailX - 6, tailY + gridSize/2);
+        ctx.lineTo(tailX, tailY + gridSize);
+      } else if (prevSegment.y < segment.y) {
+        ctx.moveTo(tailX + gridSize/2, tailY + gridSize - 2);
+        ctx.lineTo(tailX, tailY + gridSize - 2);
+        ctx.lineTo(tailX + gridSize/2, tailY + gridSize + 4);
+        ctx.lineTo(tailX + gridSize, tailY + gridSize - 2);
+      } else if (prevSegment.y > segment.y) {
+        ctx.moveTo(tailX + gridSize/2, tailY);
+        ctx.lineTo(tailX, tailY);
+        ctx.lineTo(tailX + gridSize/2, tailY - 6);
+        ctx.lineTo(tailX + gridSize, tailY);
+      }
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#45a049';
+      ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+    }
+  });
+
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+
+  if (specialFood) {
+    ctx.fillStyle = '#ffd700';
+    ctx.fillRect(specialFood.x * gridSize, specialFood.y * gridSize, gridSize - 2, gridSize - 2);
+  }
+}
+
+function gameOver() {
+  clearInterval(gameLoop);
+  alert(`Game Over! Score: ${score}`);
+  if (gameMode === 'classic') {
+    startClassicMode();
+  } else {
+    startCampaignMode();
+  }
+}
+
+function quitGame() {
+  clearInterval(gameLoop);
+  gameStarted = false;
+  document.getElementById('start-screen').style.display = 'block';
+  
+  for (let i = 0; i < tileCount; i++) {
+    for (let j = 0; j < tileCount; j++) {
+      ctx.fillStyle = (i + j) % 2 === 0 ? '#2a2a2a' : '#1a1a1a';
+      ctx.fillRect(i * gridSize, j * gridSize, gridSize, gridSize);
+    }
+  }
+  
+  snake = [];
+  score = 0;
+  level = 1;
+  updateScore();
+  updateLevel();
+  document.getElementById('objective').style.display = 'none';
+  direction = 'right';
+  gameMode = '';
+}
+
+function toggleMenu() {
+  const menu = document.querySelector('.game-menu');
+  menu.classList.toggle('active');
+}
+
+function restartGame() {
+  if (gameMode === 'classic') {
+    startClassicMode();
+  } else if (gameMode === 'campaign') {
+    startCampaignMode();
+  }
+  toggleMenu();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!gameStarted) return;
+  
+  switch(e.key) {
+    case 'ArrowUp':
+      if (direction !== 'down') direction = 'up';
+      break;
+    case 'ArrowDown':
+      if (direction !== 'up') direction = 'down';
+      break;
+    case 'ArrowLeft':
+      if (direction !== 'right') direction = 'left';
+      break;
+    case 'ArrowRight':
+      if (direction !== 'left') direction = 'right';
+      break;
+  }
+});
+
+// Load Google Fonts
+const link = document.createElement('link');
+link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap';
+link.rel = 'stylesheet';
+document.head.appendChild(link);
+
+document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
+
+draw(); // Just draw the initial board
+</script></body></html>
